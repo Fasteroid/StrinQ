@@ -1,7 +1,35 @@
 ﻿using Fasteroid;
 using System.Diagnostics;
+using System.Text;
+
+public static class StopwatchExtensions {
+    public static long ElapsedMicroseconds(this Stopwatch sw) => sw.ElapsedTicks / TimeSpan.TicksPerMicrosecond;
+    public static long ElapsedNanoseconds(this Stopwatch sw) => sw.ElapsedTicks * 1000L / TimeSpan.TicksPerMicrosecond;
+}
 
 public class Program {
+
+    public static IEnumerable<string> GenerateMixedLineEndings(int numberOfLines, int minLineLength = 5, int maxLineLength = 50)
+    {
+        Random random = new Random();
+
+        for (int i = 0; i < numberOfLines; i++)
+        {
+            int lineLength = random.Next(minLineLength, maxLineLength + 1);
+            StringBuilder line = new StringBuilder(lineLength);
+
+            // Generate random content for the line
+            for (int j = 0; j < lineLength; j++)
+            {
+                line.Append((char)random.Next('A', 'Z' + 1));
+            }
+
+            // Randomly choose line ending
+            string lineEnding = random.Next(2) == 0 ? "\n" : "\r\n";
+
+            yield return line.ToString() + lineEnding;
+        }
+    }
 
     static void Assert(bool condition) {
         if( !condition ) throw new Exception("Assertion Failed... :(");
@@ -88,7 +116,52 @@ public class Program {
             Assert(pass);
         }
 
-        Console.WriteLine("all tests passed??");
+
+        {
+            Console.WriteLine("sanity tests passed, generating evil data for stress tests...");
+            string veryLong = GenerateMixedLineEndings(2<<20, 5, 10).Aggregate(new StringBuilder(), (sb, line) => sb.Append(line)).ToString();
+            Console.WriteLine("generated");
+
+            var sw = Stopwatch.StartNew();
+            var remaining = veryLong.TakeLines(4096, out string _4096lines);
+            sw.Stop();
+
+            int _4095 = _4096lines.Count(c => c == '\n');
+            Assert(_4095 == 4095);
+
+            Console.WriteLine($"cold reading 4096 lines took {sw.ElapsedMicroseconds()}us");
+
+            sw.Restart();
+            remaining.TakeLines(16384, out string _16384lines);
+            sw.Stop();
+
+            int _16383 = _16384lines.Count(c => c == '\n');
+            Assert(_16383 == 16383);
+
+            Console.WriteLine($"cold reading 16384 lines took {sw.ElapsedMicroseconds()}us");
+
+            long avgElapsed = 0;
+            for(int i = 0; i < 64; i++) {
+                sw.Restart();
+                remaining = remaining.TakeLines(4096, out string _2048lines);
+                sw.Stop();
+                avgElapsed += sw.ElapsedMicroseconds();
+            }
+            avgElapsed /= 1000;
+            Console.WriteLine($"warm reading 4096 lines took {avgElapsed}us / op");
+
+            avgElapsed = 0;
+            for(int i = 0; i < 64; i++) {
+                sw.Restart();
+                remaining = remaining.TakeLines(16384, out string _2048lines);
+                sw.Stop();
+                avgElapsed += sw.ElapsedMicroseconds();
+            }
+            avgElapsed /= 1000;
+            Console.WriteLine($"warm reading 16384 lines took {avgElapsed}us / op");
+
+        }
+
 
     }
 }
