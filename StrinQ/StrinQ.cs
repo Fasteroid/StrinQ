@@ -23,7 +23,7 @@
         }
 
         /// <summary>
-        /// Does the same thing as <see cref="FirstNewline(string)(ReadOnlySpan{char})"/>, but searches from the end rather than the beginning.
+        /// Does the same thing as <see cref="FirstNewline(ReadOnlySpan{char})"/>, but searches from the end rather than the beginning.
         /// </summary>
         public static (int, int) LastNewline(this ReadOnlySpan<char> self) {
             int idx = self.LastIndexOf('\n');
