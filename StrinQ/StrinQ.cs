@@ -27,8 +27,8 @@
         /// </summary>
         public static (int, int) LastNewline(this ReadOnlySpan<char> self) {
             int idx = self.LastIndexOf('\n');
-            if( idx == -1 ) return (self.Length, 0); // EOL
-            if( idx == 0 )  return (0, 1);           // again, cannot possibly be a crlf
+            if( idx == -1 ) return (0, 0); // EOL but assume beginning
+            if( idx == 0 )  return (0, 1); // again, cannot possibly be a crlf
             if( self[idx - 1] == '\r' ) return (idx - 1, 2); // crlf
             return (idx, 1); // lf
         }
@@ -51,22 +51,22 @@
             int splitIdx = 0;
             ReadOnlySpan<char> remaining = self;
 
-            while( linesAcc <= count ) {
+            while(linesAcc <= count) { // could also be while(true) but that makes me uncomfortable
                 var (idx, stride) = remaining.FirstNewline();
 
-                splitIdx  += idx; // don't add stride yet, if we return 'taken' this iteration we don't want the newline
-                remaining = remaining.Slice(idx + stride);
+                splitIdx += idx;
+                remaining = remaining[(idx + stride)..];
 
                 if( linesAcc == count || remaining.Length == 0 ) {
                     break;
                 }
 
-                splitIdx += stride;
                 linesAcc++;
+                splitIdx += stride;
             }
 
             if( linesAcc == count ) {
-                taken = self.Slice(0, splitIdx).ToString();
+                taken = self[..splitIdx].ToString();
                 return remaining;
             }
 
@@ -90,19 +90,19 @@
             while( linesAcc <= count ) {
                 var (idx, stride) = remaining.LastNewline();
 
-                splitIdx  -= idx; // don't add stride yet, if we return 'taken' this iteration we don't want the newline
-                remaining = remaining.Slice(0, idx);
+                splitIdx  -= (remaining.Length - idx);
+                remaining = remaining[..(idx)];
 
                 if( linesAcc == count || remaining.Length == 0 ) {
+                    splitIdx += stride; // skip the newline
                     break;
                 }
 
-                splitIdx -= stride;
                 linesAcc++;
             }
 
             if( linesAcc == count ) {
-                taken = self.Slice(0, splitIdx).ToString();
+                taken = self[splitIdx..].ToString();
                 return remaining;
             }
 
