@@ -59,12 +59,23 @@ public class Program {
 
         {
             var remain = test.TakeLinesFromEnd(1, out string take);
-            Assert(take == "6"); // test string ends with newline, but we exclude newline, so it's empty
+            Assert(take == "6");
+            Assert(remain.ToString() == "1\n2\r\n3\n4\n");
         }
 
         {
             var remain = test.TakeLinesFromEnd(3, out string take);
             Assert(take == "4\n\r\n6");
+            Assert(remain.ToString() == "1\n2\r\n3");
+        }
+
+        {
+            var remain = test
+                        .TakeLinesFromEnd(2, out string take1)
+                        .TakeLinesFromEnd(1, out string take2);
+            Assert(take1 == "\r\n6");
+            Assert(take2 == "4");
+            Assert(remain.ToString() == "1\n2\r\n3");
         }
 
         {
@@ -75,11 +86,6 @@ public class Program {
                 pass = true;
             }
             Assert(pass);
-        }
-
-        {
-            var remain = test.TakeLinesFromEnd(1, out string take);
-            Assert(take == "6");
         }
 
         Console.WriteLine("all tests passed??");
