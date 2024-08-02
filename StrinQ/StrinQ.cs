@@ -45,8 +45,43 @@
             return LastLineBeginning(self.AsSpan());
         }
 
+
         /// <summary>
-        /// Reads the first <paramref name="count"/> lines into the output parameter <paramref name="taken"/> and returns the rest.
+        /// Skips <paramref name="count"/> lines and returns the result.
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="count">How many lines to skip</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static ReadOnlySpan<char> SkipLines(this ReadOnlySpan<char> self, int count) {
+            int linesAcc = 1;
+            ReadOnlySpan<char> remaining = self;
+
+            while(linesAcc <= count) { // could also be while(true) but that makes me uncomfortable
+                var (idx, stride) = remaining.FirstLineEnding();
+
+                remaining = remaining[(idx + stride)..];
+
+                if( linesAcc == count || remaining.Length == 0 ) {
+                    break;
+                }
+
+                linesAcc++;
+            }
+
+            if( linesAcc == count ) {
+                return remaining;
+            }
+
+            throw new ArgumentOutOfRangeException("count", $"Not enough lines to skip (expected {count} but there were only {linesAcc})");
+        }
+
+        /// <inheritdoc cref="SkipLines(ReadOnlySpan{char}, int)"/>
+        public static ReadOnlySpan<char> SkipLines(this string self, int count) {
+            return SkipLines(self.AsSpan(), count);
+        }
+
+        /// <summary>
+        /// Reads <paramref name="count"/> lines into the output parameter <paramref name="taken"/> and returns the rest.
         /// </summary>
         /// <param name="self"></param>
         /// <param name="count">How many lines to take</param>
@@ -84,11 +119,47 @@
             return TakeLines(self.AsSpan(), count, out taken);
         }
 
+        /// <summary>
+        /// (opposite of <see cref="SkipLines(ReadOnlySpan{char}, int)"/>)<br></br>
+        /// <br></br>
+        /// Skips <paramref name="count"/> lines from the end of the string and returns the rest.<br></br>
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="count">How many lines to take</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static ReadOnlySpan<char> SkipLinesFromEnd(this ReadOnlySpan<char> self, int count) {
+            int linesAcc = 1;
+            ReadOnlySpan<char> remaining = self;
+
+            while( linesAcc <= count ) {
+                var (idx, stride) = remaining.LastLineBeginning();
+
+                remaining = remaining[..(idx)];
+
+                if( linesAcc == count || remaining.Length == 0 ) {
+                    break;
+                }
+
+                linesAcc++;
+            }
+
+            if( linesAcc == count ) {
+                return remaining;
+            }
+
+            throw new ArgumentOutOfRangeException("count", $"Not enough lines to skip (expected {count} but there were only {linesAcc})");
+        }
+
+        /// <inheritdoc cref="SkipLinesFromEnd(ReadOnlySpan{char}, int)"/>
+        public static ReadOnlySpan<char> SkipLinesFromEnd(this string self, int count) {
+            return SkipLinesFromEnd(self.AsSpan(), count);
+        }
 
         /// <summary>
         /// (opposite of <see cref="TakeLines(ReadOnlySpan{char}, int, out string)"/>)<br></br>
         /// <br></br>
-        /// Reads the last <paramref name="count"/> lines into the output parameter <paramref name="taken"/> and returns the rest.
+        /// Reads <paramref name="count"/> lines from the end of the string into the output parameter <paramref name="taken"/> and returns the rest.<br></br>
+        /// The order of the lines is preserved.
         /// </summary>
         /// <param name="self"></param>
         /// <param name="count">How many lines to take</param>
@@ -125,5 +196,6 @@
         public static ReadOnlySpan<char> TakeLinesFromEnd(this string self, int count, out string taken) {
             return TakeLinesFromEnd(self.AsSpan(), count, out taken);
         }
+
     }
 }
