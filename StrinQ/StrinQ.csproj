@@ -16,7 +16,7 @@
   <PropertyGroup>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Fasteroid1150</Authors>
     <RepositoryUrl>https://github.com/Fasteroid/StrinQ</RepositoryUrl>
     <PackageTags>String, IO</PackageTags>

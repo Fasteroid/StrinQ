@@ -1,9 +1,9 @@
 # StrinQ
 
-StrinQ is an open-source collection of extension methods similar to those from LINQ, but designed specifically for common string querying tasks.<br>
+StrinQ is an open-source collection of extension methods similar to those from LINQ, but designed specifically for common string querying tasks.
 I somehow have severe doubts this will be useful anywhere aside from my one project where I need it, but I'm in too deep to not finish this package now.
 
-If you have an idea for something useful to add, please open a PR!<br>
+If you have an idea for something useful to add, please open a PR!
 The repository is available [here](https://github.com/Fasteroid/StrinQ).
 ## Methods
 
